@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 // Use the same MONGODB_URI as your .env file
-const MONGODB_URI = "mongodb://localhost:27017/dcc-bazar";
+const MONGODB_URI = "mongodb+srv://privatune:zeus1@privatune.3g2aavi.mongodb.net/DCC?retryWrites=true&w=majority&appName=privatune";
 
 // Use the exact same schema as your User model
 const userSchema = new mongoose.Schema({
