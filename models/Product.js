@@ -40,7 +40,7 @@ const productSchema = new mongoose.Schema({
   },
   brand: {
     type: String,
-    enum: ['Go Daddy', 'DCC Bazar'],
+    enum: ['Go Baby', 'DCC Bazar'],
     required: true,
   },
   sku: {

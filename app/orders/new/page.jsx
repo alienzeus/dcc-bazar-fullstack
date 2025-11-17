@@ -511,7 +511,7 @@ export default function NewOrderPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                   >
                     <option value="DCC Bazar">DCC Bazar</option>
-                    <option value="Go Daddy">Go Daddy</option>
+                    <option value="Go Baby">Go Baby</option>
                   </select>
                 </div>
 

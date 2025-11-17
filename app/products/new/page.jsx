@@ -35,7 +35,7 @@ export default function NewProductPage() {
   const [tagInput, setTagInput] = useState('');
 
   const categories = ['Clothing', 'Electronics', 'Accessories', 'Home', 'Beauty', 'Other'];
-  const brands = ['DCC Bazar', 'Go Daddy'];
+  const brands = ['DCC Bazar', 'Go Baby'];
 
   useEffect(() => {
     checkAuth();

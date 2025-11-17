@@ -18,6 +18,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
       <body className={inter.variable}>
         <Suspense fallback={<Loading />}>
           {children}

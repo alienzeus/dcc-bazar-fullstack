@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
@@ -47,7 +47,7 @@ export default function InvoicesPage() {
 
   const fetchInvoices = async () => {
     try {
-      const response = await fetch('/api/orders?status=delivered');
+      const response = await fetch('/api/orders');
       if (response.ok) {
         const data = await response.json();
         setInvoices(data.orders);
@@ -59,9 +59,9 @@ export default function InvoicesPage() {
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = 
-      invoice.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.customer?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.customer?.phone.includes(searchTerm);
+      invoice.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.customer?.phone?.includes(searchTerm);
     
     const matchesStatus = statusFilter === 'all' || invoice.paymentStatus === statusFilter;
     const matchesBrand = brandFilter === 'all' || invoice.brand === brandFilter;
@@ -78,7 +78,7 @@ export default function InvoicesPage() {
   };
 
   const selectAllInvoices = () => {
-    if (selectedInvoices.length === filteredInvoices.length) {
+    if (selectedInvoices.length === filteredInvoices.length && filteredInvoices.length > 0) {
       setSelectedInvoices([]);
     } else {
       setSelectedInvoices(filteredInvoices.map(inv => inv._id));
@@ -91,92 +91,229 @@ export default function InvoicesPage() {
       return;
     }
     
-    // Open print window with selected invoices
+    const selectedInvoiceData = invoices.filter(inv => selectedInvoices.includes(inv._id));
+    
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
+      <!DOCTYPE html>
       <html>
         <head>
           <title>Print Invoices</title>
+          <meta charset="utf-8">
           <style>
-            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-            .invoice-grid { 
-              display: grid; 
-              grid-template-columns: 1fr 1fr; 
-              gap: 20px; 
-              margin-bottom: 20px;
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
             }
+            
+            body {
+              font-family: 'Arial', sans-serif;
+              font-size: 12px;
+              line-height: 1.4;
+              color: #000;
+              background: #fff;
+              padding: 10px;
+            }
+            
+            .a4-page {
+              width: 210mm;
+              min-height: 297mm;
+              margin: 0 auto;
+              position: relative;
+            }
+            
+            .invoice-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              grid-template-rows: 1fr 1fr;
+              gap: 15px;
+              width: 100%;
+              height: 287mm;
+              padding: 10px;
+            }
+            
+            .invoice-item {
+              border: 1px solid #000;
+              padding: 12px;
+              page-break-inside: avoid;
+              break-inside: avoid;
+              background: white;
+              display: flex;
+              flex-direction: column;
+            }
+            
+            .invoice-header {
+              text-align: center;
+              border-bottom: 1px solid #000;
+              padding-bottom: 8px;
+              margin-bottom: 8px;
+            }
+            
+            .invoice-header h2 {
+              font-size: 14px;
+              font-weight: bold;
+              margin-bottom: 4px;
+            }
+            
+            .invoice-header h3 {
+              font-size: 12px;
+              font-weight: bold;
+              margin-bottom: 4px;
+            }
+            
+            .invoice-header p {
+              font-size: 10px;
+            }
+            
+            .invoice-details {
+              margin-bottom: 8px;
+            }
+            
+            .invoice-details p {
+              margin: 2px 0;
+              font-size: 10px;
+            }
+            
+            .invoice-items {
+              flex: 1;
+              margin: 8px 0;
+            }
+            
+            .invoice-items table {
+              width: 100%;
+              border-collapse: collapse;
+              font-size: 9px;
+            }
+            
+            .invoice-items th,
+            .invoice-items td {
+              padding: 3px 2px;
+              border-bottom: 1px solid #ddd;
+              text-align: left;
+            }
+            
+            .invoice-items th {
+              font-weight: bold;
+              background: #f5f5f5;
+            }
+            
+            .invoice-total {
+              border-top: 1px solid #000;
+              padding-top: 8px;
+              margin-top: auto;
+            }
+            
+            .invoice-total p {
+              margin: 2px 0;
+              font-size: 10px;
+              display: flex;
+              justify-content: space-between;
+            }
+            
+            .invoice-total .total-line {
+              font-weight: bold;
+              border-top: 1px solid #000;
+              padding-top: 2px;
+            }
+            
+            .status-badge {
+              display: inline-block;
+              padding: 2px 6px;
+              border-radius: 3px;
+              font-size: 9px;
+              font-weight: bold;
+              margin-top: 4px;
+            }
+            
+            .paid { background: #d1fae5; color: #065f46; }
+            .due { background: #fee2e2; color: #991b1b; }
+            .partial { background: #fef3c7; color: #92400e; }
+            
             @media print {
-              .invoice-grid { 
-                grid-template-columns: 1fr 1fr; 
-                page-break-inside: avoid;
+              body {
+                padding: 0;
+              }
+              
+              .a4-page {
+                width: 100%;
+                height: 100%;
+              }
+              
+              .invoice-grid {
+                height: 100%;
+              }
+              
+              .invoice-item {
+                border: 1px solid #000 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
               }
             }
-            .invoice { 
-              border: 1px solid #000; 
-              padding: 15px; 
-              page-break-inside: avoid;
+            
+            .page-break {
+              page-break-after: always;
+              break-after: page;
             }
-            .invoice-header { text-align: center; margin-bottom: 15px; }
-            .invoice-details { margin-bottom: 10px; }
-            .invoice-items { margin: 10px 0; }
-            .invoice-total { border-top: 1px solid #000; padding-top: 10px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { padding: 5px; text-align: left; border-bottom: 1px solid #ddd; }
           </style>
         </head>
         <body>
-          <div class="invoice-grid">
-            ${selectedInvoices.map(invoiceId => {
-              const invoice = invoices.find(inv => inv._id === invoiceId);
-              if (!invoice) return '';
-              
-              return `
-                <div class="invoice">
-                  <div class="invoice-header">
-                    <h2>${invoice.brand}</h2>
-                    <h3>INVOICE</h3>
-                    <p>${invoice.orderNumber}</p>
-                  </div>
-                  
-                  <div class="invoice-details">
-                    <p><strong>Customer:</strong> ${invoice.customer?.name}</p>
-                    <p><strong>Phone:</strong> ${invoice.customer?.phone}</p>
-                    <p><strong>Date:</strong> ${new Date(invoice.createdAt).toLocaleDateString()}</p>
-                  </div>
-                  
-                  <div class="invoice-items">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Item</th>
-                          <th>Qty</th>
-                          <th>Price</th>
-                          <th>Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        ${invoice.items.map(item => `
+          <div class="a4-page">
+            <div class="invoice-grid">
+              ${selectedInvoiceData.map((invoice, index) => {
+                const statusClass = invoice.paymentStatus === 'paid' ? 'paid' : 
+                                 invoice.paymentStatus === 'due' ? 'due' : 'partial';
+                
+                return `
+                  <div class="invoice-item">
+                    <div class="invoice-header">
+                      <h2>${invoice.brand || 'N/A'}</h2>
+                      <h3>INVOICE</h3>
+                      <p>${invoice.orderNumber || 'N/A'}</p>
+                    </div>
+                    
+                    <div class="invoice-details">
+                      <p><strong>Customer:</strong> ${invoice.customer?.name || 'N/A'}</p>
+                      <p><strong>Phone:</strong> ${invoice.customer?.phone || 'N/A'}</p>
+                      <p><strong>Date:</strong> ${new Date(invoice.createdAt).toLocaleDateString()}</p>
+                      <span class="status-badge ${statusClass}">${invoice.paymentStatus || 'due'}</span>
+                    </div>
+                    
+                    <div class="invoice-items">
+                      <table>
+                        <thead>
                           <tr>
-                            <td>${item.product?.title || 'N/A'}</td>
-                            <td>${item.quantity}</td>
-                            <td>৳${item.price}</td>
-                            <td>৳${item.total}</td>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Total</th>
                           </tr>
-                        `).join('')}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          ${(invoice.items || []).map(item => `
+                            <tr>
+                              <td>${item.product?.title || 'N/A'}</td>
+                              <td>${item.quantity || 0}</td>
+                              <td>৳${(item.price || 0).toLocaleString()}</td>
+                              <td>৳${(item.total || 0).toLocaleString()}</td>
+                            </tr>
+                          `).join('')}
+                        </tbody>
+                      </table>
+                    </div>
+                    
+                    <div class="invoice-total">
+                      <p><span>Subtotal:</span> <span>৳${(invoice.subtotal || 0).toLocaleString()}</span></p>
+                      <p><span>Delivery:</span> <span>৳${(invoice.courierCharge || 0).toLocaleString()}</span></p>
+                      <p class="total-line"><span>Total:</span> <span>৳${(invoice.totalAmount || 0).toLocaleString()}</span></p>
+                      <p><span>Paid:</span> <span>৳${(invoice.paidAmount || 0).toLocaleString()}</span></p>
+                      <p><span>Due:</span> <span>৳${(invoice.dueAmount || 0).toLocaleString()}</span></p>
+                    </div>
                   </div>
-                  
-                  <div class="invoice-total">
-                    <p><strong>Subtotal:</strong> ৳${invoice.subtotal}</p>
-                    <p><strong>Delivery:</strong> ৳${invoice.courierCharge || 0}</p>
-                    <p><strong>Total:</strong> ৳${invoice.totalAmount}</p>
-                    <p><strong>Paid:</strong> ৳${invoice.paidAmount}</p>
-                    <p><strong>Due:</strong> ৳${invoice.dueAmount}</p>
-                  </div>
-                </div>
-              `;
-            }).join('')}
+                  ${(index + 1) % 4 === 0 && index !== selectedInvoiceData.length - 1 ? '</div><div class="page-break"></div><div class="a4-page"><div class="invoice-grid">' : ''}
+                `;
+              }).join('')}
+            </div>
           </div>
         </body>
       </html>
@@ -184,44 +321,172 @@ export default function InvoicesPage() {
     
     printWindow.document.close();
     printWindow.focus();
-    printWindow.print();
+    
+    // Wait for content to load before printing
+    setTimeout(() => {
+      printWindow.print();
+      // printWindow.close(); // Uncomment if you want to auto-close after print
+    }, 500);
   };
 
   const downloadInvoice = (invoice) => {
-    // Simple download implementation
     const invoiceContent = `
-      ${invoice.brand} - INVOICE
-      Order: ${invoice.orderNumber}
-      Date: ${new Date(invoice.createdAt).toLocaleDateString()}
-      
-      Customer: ${invoice.customer?.name}
-      Phone: ${invoice.customer?.phone}
-      Address: ${invoice.customer?.address?.street || 'N/A'}
-      
-      ITEMS:
-      ${invoice.items.map(item => 
-        `${item.product?.title || 'N/A'} - ${item.quantity} x ৳${item.price} = ৳${item.total}`
-      ).join('\n')}
-      
-      Subtotal: ৳${invoice.subtotal}
-      Delivery: ৳${invoice.courierCharge || 0}
-      Total: ৳${invoice.totalAmount}
-      Paid: ৳${invoice.paidAmount}
-      Due: ৳${invoice.dueAmount}
-      
-      Payment Status: ${invoice.paymentStatus}
-      Thank you for your business!
-    `;
+${invoice.brand || 'N/A'} - INVOICE
+Order Number: ${invoice.orderNumber || 'N/A'}
+Date: ${new Date(invoice.createdAt).toLocaleDateString()}
+Payment Status: ${invoice.paymentStatus || 'due'}
+
+CUSTOMER DETAILS:
+Name: ${invoice.customer?.name || 'N/A'}
+Phone: ${invoice.customer?.phone || 'N/A'}
+Address: ${invoice.customer?.address?.street || 'N/A'}
+
+ITEMS:
+${(invoice.items || []).map(item => 
+  `• ${item.product?.title || 'N/A'} - ${item.quantity || 0} x ৳${(item.price || 0).toLocaleString()} = ৳${(item.total || 0).toLocaleString()}`
+).join('\n')}
+
+SUMMARY:
+Subtotal: ৳${(invoice.subtotal || 0).toLocaleString()}
+Delivery Charge: ৳${(invoice.courierCharge || 0).toLocaleString()}
+Total Amount: ৳${(invoice.totalAmount || 0).toLocaleString()}
+Paid Amount: ৳${(invoice.paidAmount || 0).toLocaleString()}
+Due Amount: ৳${(invoice.dueAmount || 0).toLocaleString()}
+
+Thank you for your business!
+${invoice.brand || 'Store'}
+    `.trim();
     
     const blob = new Blob([invoiceContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `invoice-${invoice.orderNumber}.txt`;
+    a.download = `invoice-${invoice.orderNumber || 'unknown'}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    toast.success('Invoice downloaded successfully');
+  };
+
+  const handleSinglePrint = (invoice) => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print Invoice - ${invoice.orderNumber}</title>
+          <meta charset="utf-8">
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 20px;
+              color: #000;
+            }
+            .invoice {
+              max-width: 800px;
+              margin: 0 auto;
+              border: 1px solid #000;
+              padding: 20px;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #000;
+              padding-bottom: 15px;
+              margin-bottom: 15px;
+            }
+            .details {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              margin-bottom: 20px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin: 15px 0;
+            }
+            th, td {
+              padding: 8px;
+              border-bottom: 1px solid #ddd;
+              text-align: left;
+            }
+            th {
+              background: #f5f5f5;
+            }
+            .total {
+              border-top: 2px solid #000;
+              padding-top: 10px;
+              margin-top: 10px;
+            }
+            @media print {
+              body { margin: 0; }
+              .invoice { border: none; padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="invoice">
+            <div class="header">
+              <h1>${invoice.brand || 'N/A'}</h1>
+              <h2>INVOICE</h2>
+              <p>${invoice.orderNumber || 'N/A'}</p>
+            </div>
+            
+            <div class="details">
+              <div>
+                <h3>Customer Details</h3>
+                <p><strong>Name:</strong> ${invoice.customer?.name || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${invoice.customer?.phone || 'N/A'}</p>
+                <p><strong>Date:</strong> ${new Date(invoice.createdAt).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <h3>Payment Status</h3>
+                <p><strong>Status:</strong> ${invoice.paymentStatus || 'due'}</p>
+                <p><strong>Total:</strong> ৳${(invoice.totalAmount || 0).toLocaleString()}</p>
+                <p><strong>Due:</strong> ৳${(invoice.dueAmount || 0).toLocaleString()}</p>
+              </div>
+            </div>
+            
+            <table>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Quantity</th>
+                  <th>Price</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(invoice.items || []).map(item => `
+                  <tr>
+                    <td>${item.product?.title || 'N/A'}</td>
+                    <td>${item.quantity || 0}</td>
+                    <td>৳${(item.price || 0).toLocaleString()}</td>
+                    <td>৳${(item.total || 0).toLocaleString()}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            
+            <div class="total">
+              <p><strong>Subtotal:</strong> ৳${(invoice.subtotal || 0).toLocaleString()}</p>
+              <p><strong>Delivery Charge:</strong> ৳${(invoice.courierCharge || 0).toLocaleString()}</p>
+              <p><strong>Total Amount:</strong> ৳${(invoice.totalAmount || 0).toLocaleString()}</p>
+              <p><strong>Paid Amount:</strong> ৳${(invoice.paidAmount || 0).toLocaleString()}</p>
+              <p><strong>Due Amount:</strong> ৳${(invoice.dueAmount || 0).toLocaleString()}</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
   };
 
   if (loading) return <Loading />;
@@ -287,7 +552,7 @@ export default function InvoicesPage() {
             >
               <option value="all">All Brands</option>
               <option value="DCC Bazar">DCC Bazar</option>
-              <option value="Go Daddy">Go Daddy</option>
+              <option value="Go Baby">Go Baby</option>
             </select>
           </div>
         </div>
@@ -382,21 +647,21 @@ export default function InvoicesPage() {
                       <div className="flex items-center gap-2">
                         <button 
                           onClick={() => downloadInvoice(invoice)}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="text-blue-600 hover:text-blue-900 p-1 rounded hover:bg-blue-50"
                           title="Download"
                         >
                           <Download size={16} />
                         </button>
                         <button 
-                          onClick={() => window.open(`/api/invoices/${invoice._id}/print`, '_blank')}
-                          className="text-green-600 hover:text-green-900"
+                          onClick={() => handleSinglePrint(invoice)}
+                          className="text-green-600 hover:text-green-900 p-1 rounded hover:bg-green-50"
                           title="Print"
                         >
                           <Printer size={16} />
                         </button>
                         <button 
                           onClick={() => router.push(`/orders/${invoice._id}`)}
-                          className="text-gray-600 hover:text-gray-900"
+                          className="text-gray-600 hover:text-gray-900 p-1 rounded hover:bg-gray-50"
                           title="View"
                         >
                           <Eye size={16} />

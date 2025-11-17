@@ -86,7 +86,7 @@ const orderSchema = new mongoose.Schema({
   },
   brand: {
     type: String,
-    enum: ['Go Daddy', 'DCC Bazar'],
+    enum: ['Go Baby', 'DCC Bazar'],
     required: true,
   },
   notes: String,
