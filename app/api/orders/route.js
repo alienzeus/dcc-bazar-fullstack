@@ -134,3 +134,64 @@ export async function POST(request) {
     );
   }
 }
+
+// Add this to your existing app/api/orders/route.js
+export async function DELETE(request) {
+  try {
+    const user = await requireAuth(request);
+    await dbConnect();
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Order ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      );
+    }
+
+    // Restore product stock before deleting order
+    for (const item of order.items) {
+      const product = await Product.findById(item.product);
+      if (product) {
+        product.stock += item.quantity;
+        product.salesCount -= item.quantity;
+        await product.save();
+      }
+    }
+
+    await Order.findByIdAndDelete(id);
+
+    // Log the action
+    await History.create({
+      user: user._id,
+      action: 'delete',
+      resource: 'order',
+      resourceId: id,
+      description: `Deleted order ${order.orderNumber}`,
+      ip: request.headers.get('x-forwarded-for'),
+      userAgent: request.headers.get('user-agent'),
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Order deleted successfully' 
+    });
+
+  } catch (error) {
+    console.error('Order deletion error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}

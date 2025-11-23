@@ -110,7 +110,7 @@ orderSchema.pre('save', function(next) {
   next();
 });
 
-orderSchema.index({ orderNumber: 1 });
+
 orderSchema.index({ customer: 1 });
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ brand: 1, status: 1 });

@@ -64,6 +64,30 @@ export default function OrdersPage() {
     }
   };
 
+  // Add these functions to your existing app/orders/page.jsx
+
+const handleDeleteOrder = async (orderId) => {
+  if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/orders?id=${orderId}`, {
+      method: 'DELETE',
+    });
+
+    if (response.ok) {
+      toast.success('Order deleted successfully');
+      fetchOrders(); // Refresh the orders list
+    } else {
+      const data = await response.json();
+      toast.error(data.error || 'Failed to delete order');
+    }
+  } catch (error) {
+    toast.error('Failed to delete order');
+  }
+};
+
   const filteredOrders = orders.filter(order => {
     const matchesSearch = 
       order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
