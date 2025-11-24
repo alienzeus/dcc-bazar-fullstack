@@ -4,6 +4,40 @@ import { requireAuth } from '@/lib/auth';
 import User from '@/models/User';
 import History from '@/models/History';
 
+// Add GET method to fetch single user
+export async function GET(request, { params }) {
+  try {
+    const user = await requireAuth(request);
+    
+    // Only superadmin can access user details
+    if (user.role !== 'superadmin') {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
+
+    await dbConnect();
+
+    const userData = await User.findById(params.id).select('-password');
+    
+    if (!userData) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ user: userData });
+  } catch (error) {
+    console.error('User fetch error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(request, { params }) {
   try {
     const user = await requireAuth(request);

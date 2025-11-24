@@ -8,31 +8,14 @@ import History from '@/models/History';
 export async function POST(request) {
   try {
     const currentUser = await requireAuth(request);
-    
-    // Only superadmin can upload photos for other users
-    if (currentUser.role !== 'superadmin') {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 403 }
-      );
-    }
-
     await dbConnect();
 
     const formData = await request.formData();
     const imageFile = formData.get('image');
-    const userId = formData.get('userId'); // Get userId from form data
 
     if (!imageFile) {
       return NextResponse.json(
         { error: 'No image file provided' },
-        { status: 400 }
-      );
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
         { status: 400 }
       );
     }
@@ -51,9 +34,9 @@ export async function POST(request) {
       ]
     });
 
-    // Update user photo
+    // Update current user's photo
     const updatedUser = await User.findByIdAndUpdate(
-      userId,
+      currentUser._id,
       {
         photo: {
           public_id: uploadResult.public_id,
@@ -75,8 +58,8 @@ export async function POST(request) {
       user: currentUser._id,
       action: 'update',
       resource: 'user',
-      resourceId: userId,
-      description: `Updated profile photo for ${updatedUser.name}`,
+      resourceId: currentUser._id,
+      description: 'Updated profile photo',
       ip: request.headers.get('x-forwarded-for'),
       userAgent: request.headers.get('user-agent'),
     });

@@ -68,49 +68,50 @@ export default function SettingsPage() {
   };
 
   const handleImageUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  const file = event.target.files[0];
+  if (!file) return;
 
-    // Validate file type and size
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+  // Validate file type and size
+  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const maxSize = 5 * 1024 * 1024; // 5MB
 
-    if (!validTypes.includes(file.type)) {
-      toast.error('Please select a valid image file (JPEG, PNG, WebP)');
-      return;
+  if (!validTypes.includes(file.type)) {
+    toast.error('Please select a valid image file (JPEG, PNG, WebP)');
+    return;
+  }
+
+  if (file.size > maxSize) {
+    toast.error('Image size should be less than 5MB');
+    return;
+  }
+
+  setUploading(true);
+
+  try {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    // Use the new profile upload route
+    const response = await fetch('/api/users/profile/upload-photo', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      toast.success('Profile photo updated successfully');
+      setUser(prev => ({ ...prev, photo: data.photo }));
+    } else {
+      toast.error(data.error || 'Failed to upload photo');
     }
-
-    if (file.size > maxSize) {
-      toast.error('Image size should be less than 5MB');
-      return;
-    }
-
-    setUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const response = await fetch('/api/users/upload-photo', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        toast.success('Profile photo updated successfully');
-        setUser(prev => ({ ...prev, photo: data.photo }));
-      } else {
-        toast.error(data.error || 'Failed to upload photo');
-      }
-    } catch (error) {
-      toast.error('Error uploading photo');
-    } finally {
-      setUploading(false);
-      event.target.value = ''; // Reset file input
-    }
-  };
+  } catch (error) {
+    toast.error('Error uploading photo');
+  } finally {
+    setUploading(false);
+    event.target.value = ''; // Reset file input
+  }
+};
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
