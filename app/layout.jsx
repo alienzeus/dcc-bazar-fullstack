@@ -4,6 +4,7 @@ import './globals.css'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Loading from '@/components/Loading'
+import Footer from '@/components/Footer'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -35,6 +36,7 @@ export default function RootLayout({ children }) {
           pauseOnHover
           theme="light"
         />
+        <Footer />
       </body>
     </html>
   )
