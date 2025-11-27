@@ -15,10 +15,16 @@ export async function GET(request) {
     const page = parseInt(searchParams.get('page')) || 1;
     const limit = parseInt(searchParams.get('limit')) || 10;
     const status = searchParams.get('status');
+    const pathao = searchParams.get('pathao'); // New parameter for Pathao filtering
 
     const query = {};
     if (status && status !== 'all') {
       query.status = status;
+    }
+
+    // Filter for Pathao orders
+    if (pathao === 'true') {
+      query.deliveryMethod = 'pathao';
     }
 
     const orders = await Order.find(query)
@@ -135,7 +141,6 @@ export async function POST(request) {
   }
 }
 
-// Add this to your existing app/api/orders/route.js
 export async function DELETE(request) {
   try {
     const user = await requireAuth(request);

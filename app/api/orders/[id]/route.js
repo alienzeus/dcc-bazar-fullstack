@@ -118,7 +118,13 @@ export async function PUT(request, { params }) {
         subtotal,
         totalAmount,
         paidAmount,
-        dueAmount: totalAmount - paidAmount
+        dueAmount: totalAmount - paidAmount,
+        // Preserve Pathao fields if not provided in update
+        pathaoConsignmentId: body.pathaoConsignmentId || existingOrder.pathaoConsignmentId,
+        pathaoStatus: body.pathaoStatus || existingOrder.pathaoStatus,
+        pathaoUpdatedAt: body.pathaoUpdatedAt || existingOrder.pathaoUpdatedAt,
+        pathaoDeliveryFee: body.pathaoDeliveryFee || existingOrder.pathaoDeliveryFee,
+        pathaoTrackingUrl: body.pathaoTrackingUrl || existingOrder.pathaoTrackingUrl,
       },
       { new: true, runValidators: true }
     ).populate('customer')

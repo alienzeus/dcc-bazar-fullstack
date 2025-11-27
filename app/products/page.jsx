@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  Plus, Search, Filter, Edit, Trash2, 
-  Eye, Package, Image as ImageIcon
+  Plus, Search, Edit, Trash2, 
+  Eye, Package, Image as ImageIcon, Tags
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import Sidebar from '@/components/Sidebar';
@@ -14,6 +14,7 @@ export default function ProductsPage() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [brandFilter, setBrandFilter] = useState('all');
@@ -22,6 +23,7 @@ export default function ProductsPage() {
   useEffect(() => {
     checkAuth();
     fetchProducts();
+    fetchCategories();
   }, []);
 
   const checkAuth = async () => {
@@ -56,6 +58,18 @@ export default function ProductsPage() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/categories');
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data.categories);
+      }
+    } catch (error) {
+      toast.error('Failed to fetch categories');
+    }
+  };
+
   const handleDelete = async (productId) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
 
@@ -87,7 +101,8 @@ export default function ProductsPage() {
     return matchesSearch && matchesCategory && matchesBrand;
   });
 
-  const categories = [...new Set(products.map(p => p.category))];
+  // Get unique categories from the database
+  const availableCategories = [...new Set(categories.map(cat => cat.name))];
   const brands = [...new Set(products.map(p => p.brand))];
 
   const getStockStatus = (stock, minStock) => {
@@ -112,13 +127,22 @@ export default function ProductsPage() {
             <h1 className="text-2xl font-bold text-gray-900">Products</h1>
             <p className="text-gray-600">Manage your product inventory</p>
           </div>
-          <button 
-            onClick={() => router.push('/products/new')}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
-          >
-            <Plus size={20} />
-            Add Product
-          </button>
+          <div className="flex gap-3">
+            <button 
+              onClick={() => router.push('/categories')}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-blue-700"
+            >
+              <Tags size={20} />
+              Manage Categories
+            </button>
+            <button 
+              onClick={() => router.push('/products/new')}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-green-700"
+            >
+              <Plus size={20} />
+              Add Product
+            </button>
+          </div>
         </div>
 
         {/* Filters and Search */}
@@ -135,16 +159,6 @@ export default function ProductsPage() {
               />
             </div>
             <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              <option value="all">All Categories</option>
-              {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-              ))}
-            </select>
-            <select
               value={brandFilter}
               onChange={(e) => setBrandFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -152,6 +166,16 @@ export default function ProductsPage() {
               <option value="all">All Brands</option>
               {brands.map(brand => (
                 <option key={brand} value={brand}>{brand}</option>
+              ))}
+            </select>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            >
+              <option value="all">All Categories</option>
+              {availableCategories.map(category => (
+                <option key={category} value={category}>{category}</option>
               ))}
             </select>
           </div>
@@ -266,12 +290,20 @@ export default function ProductsPage() {
                 : 'Get started by adding your first product'
               }
             </p>
-            <button
-              onClick={() => router.push('/products/new')}
-              className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-            >
-              Add Product
-            </button>
+            <div className="mt-4 flex gap-3 justify-center">
+              <button
+                onClick={() => router.push('/categories')}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                Manage Categories
+              </button>
+              <button
+                onClick={() => router.push('/products/new')}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              >
+                Add Product
+              </button>
+            </div>
           </div>
         )}
       </main>

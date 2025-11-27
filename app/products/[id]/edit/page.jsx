@@ -32,10 +32,26 @@ export default function EditProductPage() {
   const [specValue, setSpecValue] = useState('');
   const router = useRouter();
   const params = useParams();
+  const [categories, setCategories] = useState([]);
+
+// Add this to fetch categories
+const fetchCategories = async () => {
+  try {
+    const response = await fetch('/api/categories');
+    if (response.ok) {
+      const data = await response.json();
+      setCategories(data.categories);
+    }
+  } catch (error) {
+    toast.error('Failed to fetch categories');
+  }
+};
+
 
   useEffect(() => {
     checkAuth();
     fetchProduct();
+    fetchCategories();
   }, [params.id]);
 
   const checkAuth = async () => {
@@ -340,15 +356,21 @@ export default function EditProductPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.category}
-                    onChange={(e) => handleInputChange('category', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                </div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+  <select
+    required
+    value={formData.category}
+    onChange={(e) => handleInputChange('category', e.target.value)}
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+  >
+    <option value="">Select Category</option>
+    {categories.map(category => (
+      <option key={category._id} value={category.name}>
+        {category.name} ({category.brand})
+      </option>
+    ))}
+  </select>
+</div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Brand *</label>
                   <input

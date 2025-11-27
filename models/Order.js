@@ -89,6 +89,25 @@ const orderSchema = new mongoose.Schema({
     enum: ['Go Baby', 'DCC Bazar'],
     required: true,
   },
+  // Pathao Integration Fields
+  pathaoConsignmentId: {
+    type: String,
+    sparse: true
+  },
+  pathaoStatus: {
+    type: String,
+    enum: ['Pending', 'Picked', 'Shipped', 'Delivered', 'Cancelled', 'Returned']
+  },
+  pathaoUpdatedAt: {
+    type: Date
+  },
+  pathaoDeliveryFee: {
+    type: Number,
+    min: 0
+  },
+  pathaoTrackingUrl: {
+    type: String
+  },
   notes: String,
   invoiceUrl: String,
   qrCode: String,
@@ -110,9 +129,9 @@ orderSchema.pre('save', function(next) {
   next();
 });
 
-
 orderSchema.index({ customer: 1 });
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ brand: 1, status: 1 });
+orderSchema.index({ pathaoStatus: 1 });
 
 export default mongoose.models.Order || mongoose.model('Order', orderSchema);

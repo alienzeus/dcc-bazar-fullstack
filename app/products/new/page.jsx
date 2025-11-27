@@ -16,6 +16,9 @@ export default function NewProductPage() {
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const router = useRouter();
+  const [categories, setCategories] = useState([]);
+
+  
 
   const [formData, setFormData] = useState({
     title: '',
@@ -34,12 +37,25 @@ export default function NewProductPage() {
   const [imagePreviews, setImagePreviews] = useState([]);
   const [tagInput, setTagInput] = useState('');
 
-  const categories = ['Clothing', 'Electronics', 'Accessories', 'Home', 'Beauty', 'Other'];
   const brands = ['DCC Bazar', 'Go Baby'];
 
   useEffect(() => {
     checkAuth();
+    fetchCategories();
   }, []);
+  // Add this useEffect to fetch categories
+
+const fetchCategories = async () => {
+  try {
+    const response = await fetch('/api/categories');
+    if (response.ok) {
+      const data = await response.json();
+      setCategories(data.categories);
+    }
+  } catch (error) {
+    toast.error('Failed to fetch categories');
+  }
+};
 
   const checkAuth = async () => {
     try {
@@ -297,21 +313,23 @@ export default function NewProductPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Category *
-                      </label>
-                      <select
-                        required
-                        value={formData.category}
-                        onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                      >
-                        <option value="">Select Category</option>
-                        {categories.map(category => (
-                          <option key={category} value={category}>{category}</option>
-                        ))}
-                      </select>
-                    </div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Category *
+  </label>
+  <select
+    required
+    value={formData.category}
+    onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+  >
+    <option value="">Select Category</option>
+    {categories.map(category => (
+      <option key={category._id} value={category.name}>
+        {category.name} ({category.brand})
+      </option>
+    ))}
+  </select>
+</div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
