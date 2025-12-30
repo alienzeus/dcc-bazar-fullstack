@@ -2,7 +2,9 @@
 import { 
   BarChart, ShoppingCart, Package, Users, 
   DollarSign, Wallet, Settings, LogOut,
-  Menu, FolderOpen, ChevronDown, ChevronRight
+  Menu, FolderOpen, ChevronDown, ChevronRight,
+  FileTerminalIcon,
+  File
 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -21,6 +23,8 @@ export default function Sidebar({ user, onLogout }) {
     { icon: FolderOpen, label: 'Categories', href: '/categories', permission: 'products:read' },
     { icon: Users, label: 'Customers', href: '/customers', permission: 'customers:read' },
     { icon: DollarSign, label: 'Invoices', href: '/invoices', permission: 'orders:read' },
+    { icon: FileTerminalIcon, label: 'Finance', href: '/finance', permission: 'orders:read' },
+    { icon: File, label: 'Reports', href: '/reports', permission: 'orders:read' },
     { icon: Wallet, label: 'History Log', href: '/history', permission: 'analytics:read' },
   ];
 

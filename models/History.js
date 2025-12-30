@@ -7,18 +7,22 @@ const historySchema = new mongoose.Schema({
     required: true,
   },
   action: {
-    type: String,
-    required: true,
-    enum: [
-      'create', 'update', 'delete', 'login', 'logout', 
-      'password_change', 'status_change', 'pathao_send'
-    ],
-  },
-  resource: {
-    type: String,
-    required: true,
-    enum: ['product', 'order', 'customer', 'user', 'payment', 'category', 'pathao_send'],
-  },
+  type: String,
+  required: true,
+  enum: [
+    'create', 'update', 'delete', 'login', 'logout', 
+    'password_change', 'status_change', 'pathao_send',
+    'transaction_create', 'transaction_update', 'transaction_delete',
+    'report_generate', 'report_delete'
+  ],
+},
+
+// Add to the resource enum:
+resource: {
+  type: String,
+  required: true,
+  enum: ['product', 'order', 'customer', 'user', 'payment', 'category', 'pathao_send', 'transaction', 'report'],
+},
   resourceId: mongoose.Schema.Types.ObjectId,
   description: {
     type: String,

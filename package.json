@@ -22,6 +22,7 @@
     "qr-code-styling": "^1.6.0-rc.1",
     "react": "^18",
     "react-chartjs-2": "^5.2.0",
+    "react-datepicker": "^9.1.0",
     "react-dom": "^18",
     "react-toastify": "^9.1.3",
     "recharts": "^3.3.0",
