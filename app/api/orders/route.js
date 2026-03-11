@@ -78,12 +78,12 @@ export async function POST(request) {
         throw new Error(`Product not found: ${item.product}`);
       }
 
-      if (product.stock < item.quantity) {
-        throw new Error(`Insufficient stock for ${product.title}`);
-      }
+      // if (product.stock < item.quantity) {
+      //   throw new Error(`Insufficient stock for ${product.title}`);
+      // }
 
       // Update product stock and sales count
-      product.stock -= item.quantity;
+      // product.stock -= item.quantity;
       product.salesCount += item.quantity;
       await product.save();
 
